@@ -50,7 +50,7 @@ public class WeatherDetails extends AppCompatActivity {
         if(! bundle.isEmpty()){
             cityWeather = (CityWeather) bundle.getSerializable("city");
         }
-        weatherServices = API.getApi().create(WeatherServices.class);
+        weatherServices = API.getHistory().create(WeatherServices.class);
 
         setCardData();
 
@@ -84,8 +84,6 @@ public class WeatherDetails extends AppCompatActivity {
 
         String weatherDescription = cityWeather.getWeeklyWeather().get(0).getWeatherDetails().get(0).getShotDescription();
         Picasso.with(this).load(IconProvider.getImageIcon(weatherDescription)).into(imageViewWeatherIcon);
-        Date date = new Date();
-        Calendar calendar = new GregorianCalendar();
 
 
 
