@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void updateCity(String cityName, int index){
-        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",6);
+        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",16);
         cityWeather.enqueue(new Callback<CityWeather>() {
             @Override
             public void onResponse(Call<CityWeather> call, Response<CityWeather> response) {
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void addCity(String cityName){
-        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",6);
+        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",16);
         cityWeather.enqueue(new Callback<CityWeather>() {
             @Override
             public void onResponse(Call<CityWeather> call, Response<CityWeather> response) {
