@@ -7,18 +7,18 @@ import java.util.List;
 
 public class Weather implements Serializable{
     @SerializedName("dt")
-    private int date;
+    private long date;
     private Temp temp;
     private float pressure, humidity;
     @SerializedName("weather")
     private List<WeatherDetails> weatherDetails;
     private float speed, deg, clouds, rain;
 
-    public int getDate() {
+    public long getDate() {
         return date;
     }
 
-    public void setDate(int date) {
+    public void setDate(long date) {
         this.date = date;
     }
 
