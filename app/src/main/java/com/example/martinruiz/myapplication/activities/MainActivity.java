@@ -1,13 +1,15 @@
 package com.example.martinruiz.myapplication.activities;
 
-import android.annotation.SuppressLint;
+import java.lang.reflect.Type;
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
@@ -20,6 +22,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
 import android.transition.Explode;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -35,8 +38,9 @@ import com.example.martinruiz.myapplication.adapters.CityWeatherAdapter;
 import com.example.martinruiz.myapplication.interfaces.onSwipeListener;
 import com.example.martinruiz.myapplication.models.CityWeather;
 import com.example.martinruiz.myapplication.utils.ItemTouchHelperCallback;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.fabAddCity) FloatingActionButton fabAddCity ;
     private WeatherServices weatherServices;
     private MaterialTapTargetPrompt mFabPrompt;
+    public final static String CITIES_TAG = "CITIES";
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -68,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
         ButterKnife.bind(this);
-
 
 
         cities = getCities();
@@ -91,6 +95,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent,options.toBundle());
             }
         });
+
+
+        refreshCityList();
+        for(CityWeather weather : cities){
+            Log.d("cities:", weather.getCity().getName());
+        }
+
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setLayoutManager(layoutManager);
@@ -203,8 +214,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
     public void updateCity(String cityName, int index){
-        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",6);
+        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",16);
         cityWeather.enqueue(new Callback<CityWeather>() {
             @Override
             public void onResponse(Call<CityWeather> call, Response<CityWeather> response) {
@@ -226,15 +239,15 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void addCity(String cityName){
-        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",6);
+        Call<CityWeather> cityWeather = weatherServices.getWeatherCity(cityName, API.KEY, "metric",16);
         cityWeather.enqueue(new Callback<CityWeather>() {
             @Override
             public void onResponse(Call<CityWeather> call, Response<CityWeather> response) {
                 if(response.code()==200){
                     CityWeather cityWeather = response.body();
                     cities.add(cityWeather);
-                    adapter.notifyItemInserted(cities.size()-1);
-                    recyclerView.scrollToPosition(cities.size()-1);
+                    ((CityWeatherAdapter)adapter).updateSavedCities();
+                    refreshCityList();
 
                 }else{
                     Toast.makeText(MainActivity.this,"Sorry, city not found",Toast.LENGTH_LONG).show();
@@ -247,10 +260,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void refreshCityList() {
+        adapter.notifyItemInserted(cities.size()-1);
+        recyclerView.scrollToPosition(cities.size()-1);
+    }
+
     private List<CityWeather> getCities() {
-        return new ArrayList<CityWeather>(){
-            {
-            }
-        };
+        SharedPreferences appSharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(getApplicationContext());
+        Gson gson = new Gson();
+        String json = appSharedPrefs.getString(CITIES_TAG, "");
+        Type type = new TypeToken<ArrayList<CityWeather>>(){}.getType();
+        ArrayList<CityWeather> cities = gson.fromJson(json, type);
+        if(cities == null ) return new ArrayList<>();
+        return cities;
     }
 }

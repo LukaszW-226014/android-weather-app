@@ -9,7 +9,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class API {
     public static final String BASE_URL = "http://api.openweathermap.org/data/2.5/";
-    public static final String BASE_URL2 = "http://history.openweathermap.org/data/2.5/";
     public static final String KEY = "79badf94102e008963c2d50b6cfa43f2";
 
 
@@ -25,14 +24,5 @@ public class API {
         return retrofit;
     }
 
-    public static Retrofit getHistory(){
-        if(retrofit == null){
-            retrofit =new Retrofit.Builder()
-                    .baseUrl(BASE_URL2)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-        }
-        return retrofit;
-    }
 
 }

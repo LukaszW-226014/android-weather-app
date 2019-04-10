@@ -1,6 +1,8 @@
 package com.example.martinruiz.myapplication.adapters;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +17,7 @@ import com.example.martinruiz.myapplication.activities.MainActivity;
 import com.example.martinruiz.myapplication.interfaces.onSwipeListener;
 import com.example.martinruiz.myapplication.models.CityWeather;
 import com.example.martinruiz.myapplication.utils.IconProvider;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -64,7 +67,7 @@ public class CityWeatherAdapter extends RecyclerView.Adapter<CityWeatherAdapter.
         CityWeather tempCity = cities.get(position);
         cities.remove(position);
         notifyItemRemoved(position);
-
+        updateSavedCities();
         Snackbar.make(parentView, "Removed", Snackbar.LENGTH_LONG)
                 .setAction("Undo", v -> {
                     addItem(position, tempCity);
@@ -112,4 +115,15 @@ public class CityWeatherAdapter extends RecyclerView.Adapter<CityWeatherAdapter.
         void onItemClick(CityWeather cityWeather , int position, View view);
     }
 
+    public void updateSavedCities() {
+        SharedPreferences appSharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(activity.getApplicationContext());
+        SharedPreferences.Editor prefsEditor = appSharedPrefs.edit();
+        Gson gson = new Gson();
+
+        String json = gson.toJson(cities);
+        prefsEditor.putString(MainActivity.CITIES_TAG, json);
+        prefsEditor.apply();
+
+    }
 }

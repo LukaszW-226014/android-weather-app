@@ -1,7 +1,14 @@
 package com.example.martinruiz.myapplication.activities;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -11,9 +18,14 @@ import com.example.martinruiz.myapplication.API.API;
 import com.example.martinruiz.myapplication.API.APIServices.WeatherServices;
 import com.example.martinruiz.myapplication.R;
 import com.example.martinruiz.myapplication.models.CityWeather;
+import com.example.martinruiz.myapplication.models.Weather;
+import com.example.martinruiz.myapplication.models.WeatherItem;
 import com.example.martinruiz.myapplication.utils.IconProvider;
 import com.squareup.picasso.Picasso;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -32,11 +44,9 @@ public class WeatherDetails extends AppCompatActivity {
     @BindView(R.id.textViewCardMinTemp) TextView  textViewMinTemp;
     @BindView(R.id.imageViewCardWeatherIcon) ImageView imageViewWeatherIcon;
     @BindView(R.id.detailList) ListView listView;
-
-
+    ArrayAdapter adapter;
+    private ArrayList<WeatherItem> weatherList;
     private CityWeather cityWeather;
-    private CityWeather pastWeather;
-    private WeatherServices weatherServices;
     String[] namesOfDays = {
             "SAT","SUN","MON", "TUE", "WED", "THU", "FRI",
     };
@@ -47,31 +57,36 @@ public class WeatherDetails extends AppCompatActivity {
         setContentView(R.layout.activity_weather_details);
         ButterKnife.bind(this);
         Bundle bundle = getIntent().getExtras();
+        weatherList = new ArrayList<>();
         if(! bundle.isEmpty()){
             cityWeather = (CityWeather) bundle.getSerializable("city");
         }
-        weatherServices = API.getHistory().create(WeatherServices.class);
+        adapter = new ArrayAdapter<WeatherItem>(this,R.layout.list_item, weatherList) {
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View listItem = convertView;
+                if(listItem == null)
+                    listItem = LayoutInflater.from(getContext()).inflate(R.layout.list_item,parent,false);
+
+               WeatherItem currentWeather = weatherList.get(position);
+
+
+                TextView date = (TextView) listItem.findViewById(R.id.text1);
+                date.setText(currentWeather.getDate());
+                TextView temp = (TextView) listItem.findViewById(R.id.text2);
+                temp.setText(currentWeather.getTemp());
+                TextView humidity = (TextView) listItem.findViewById(R.id.text3);
+                humidity.setText(currentWeather.getHumidity());
+
+
+                return listItem;
+            }
+        };
+        listView.setAdapter(adapter);
 
         setCardData();
-
     }
 
-    private void getPastWeather(String cityName, int start, int end) {
-        Call<CityWeather> cityWeather = weatherServices.getPastWeatherCity(cityName,"days", start, end);
-        cityWeather.enqueue(new Callback<CityWeather>() {
-            @Override
-            public void onResponse(Call<CityWeather> call, Response<CityWeather> response) {
-                if(response.code()==200){
-                    pastWeather = response.body();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<CityWeather> call, Throwable t) {
-                Toast.makeText(WeatherDetails.this,"Sorry, can't refresh right now.",Toast.LENGTH_LONG).show();
-            }
-        });
-    }
 
     private void setCardData() {
         textViewCityName.setText(cityWeather.getCity().getName()+", "+cityWeather.getCity().getCountry());
@@ -84,11 +99,20 @@ public class WeatherDetails extends AppCompatActivity {
 
         String weatherDescription = cityWeather.getWeeklyWeather().get(0).getWeatherDetails().get(0).getShotDescription();
         Picasso.with(this).load(IconProvider.getImageIcon(weatherDescription)).into(imageViewWeatherIcon);
-
-
-
+        weatherList.add(new WeatherItem("Date", "Temperature", "Humidity"));
+        for(Weather weather : cityWeather.getWeeklyWeather()) {
+            weatherList.add(new WeatherItem(getRealDate(weather.getDate()), weather.getTemp().getDay() + "\u00b0C", weather.getHumidity() + "%"));
+        }
+        adapter.notifyDataSetChanged();
 
         }
-        
+
+    private String getRealDate(long date) {
+        DateFormat simple = new SimpleDateFormat("EEE dd MM");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(date*1000);
+        return simple.format(calendar.getTime());
     }
+
+}
 
