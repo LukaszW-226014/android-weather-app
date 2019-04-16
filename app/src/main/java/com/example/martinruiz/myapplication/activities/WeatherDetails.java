@@ -21,6 +21,9 @@ import com.example.martinruiz.myapplication.models.CityWeather;
 import com.example.martinruiz.myapplication.models.Weather;
 import com.example.martinruiz.myapplication.models.WeatherItem;
 import com.example.martinruiz.myapplication.utils.IconProvider;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
@@ -105,7 +108,20 @@ public class WeatherDetails extends AppCompatActivity {
         }
         adapter.notifyDataSetChanged();
 
+        drawPlot(weatherList);
+
         }
+
+    private void drawPlot(ArrayList<WeatherItem> weatherList) {
+        GraphView graph = (GraphView) findViewById(R.id.graph);
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[] {
+                new DataPoint(0, 1),
+                new DataPoint(1, 5),
+                new DataPoint(2, 3)
+        });
+        graph.addSeries(series);
+
+    }
 
     private String getRealDate(long date) {
         DateFormat simple = new SimpleDateFormat("EEE dd MM");
